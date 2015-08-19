@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
                         .setFps(10)
                         .setListener(new RecorderListener() {
                             @Override
-                            public void onRecording() {
+                            public void onStarted() {
                                 textView.setText("recording");
                             }
 

@@ -16,9 +16,9 @@ public class Utility {
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-    public static String getNextFolderName(){
-        int last = prefs.getInt("foldername", 0);
-        prefs.edit().putInt("foldername", last+1).commit();
-        return "ss" + last;
+    public static String getNextRecordName(){
+        int last = prefs.getInt("recordname", 0);
+        prefs.edit().putInt("recordname", last+1).commit();
+        return "record" + last + ".mp4";
     }
 }

@@ -5,26 +5,21 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Point;
-import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
-import android.widget.Toast;
 
 import com.example.ozercanh.screenrecordqa.Interface.RecorderListener;
-import com.example.ozercanh.screenrecordqa.Interface.ScreenshotListener;
-import com.example.ozercanh.screenrecordqa.Interface.VideoCreateListener;
-import com.example.ozercanh.screenrecordqa.Model.SSParams;
+import com.example.ozercanh.screenrecordqa.Model.RecorderParams;
+import com.example.ozercanh.screenrecordqa.Model.Screenshot;
 import com.example.ozercanh.screenrecordqa.Model.Status;
-import com.example.ozercanh.screenrecordqa.Model.VideoParams;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by ozercanh on 18/08/2015.
@@ -32,18 +27,21 @@ import java.util.TimerTask;
 public class Recorder {
 
     private final Context context;
-    private String folderName;
-    private ScreenshotListener mCallback;
+    private String recordName;
     private int fps;
     private int count;
 
-    private Status stopFlag;
+    private Status statusFlag;
     private long initiateTime;
     private Activity activity;
     private Point size;
-    private ArrayList<String> imageAddresses;
-    private ArrayList<Integer> failedImages;
     private RecorderListener mRecorderListener;
+    private File videoFile;
+
+
+    private Handler handler;
+    private RecorderThread recorderThread;
+    private RecorderParams recorderParams;
 
     public Recorder(Context context){
         Utility.init(context);
@@ -70,144 +68,83 @@ public class Recorder {
     }
 
     private void initializeVariables() {
+        this.recordName = Utility.getNextRecordName();
+        this.handler = new Handler();
+        this.videoFile = new File(Environment.getExternalStorageDirectory() , this.recordName);
         this.count = 0;
-        this.imageAddresses = new ArrayList<>();
-        this.failedImages = new ArrayList<>();
-        this.folderName = Utility.getNextFolderName();
-        this.mCallback = new ScreenshotListener() {
-            @Override
-            public void onSuccess(int count, String address) {
-                imageAddresses.add(address);
-            }
 
-            @Override
-            public void onFail(int count, Exception e) {
-                failedImages.add(count);
-            }
-        };
+        recorderParams = new RecorderParams();
+        recorderParams.videoPath = videoFile.getPath();
+        recorderParams.fps = fps;
+        recorderParams.screenWidth = size.x;
+        recorderParams.screenHeight = size.y;
+        recorderParams.queue = new LinkedBlockingQueue<>();
 
-        File folder = new File(Environment.getExternalStorageDirectory() + File.separator + this.folderName);
+        recorderThread = new RecorderThread(recorderParams, mRecorderListener, handler);
 
-        if (!folder.exists()) {
-            if(!folder.mkdir()){
-                mRecorderListener.onRecordFailed();
-            }
-        }
     }
 
     public void startRecording(){
         initializeVariables();
 
         initiateTime = System.currentTimeMillis();
-        stopFlag = Status.RECORDING;
-        mRecorderListener.onRecording();
-        takeScreenshot();
+
+        recorderThread.start();
+        statusFlag = Status.RECORDING;
+        mRecorderListener.onStarted();
+        recordFrame();
     }
 
     public void stopRecording(){
-        this.stopFlag = Status.STOPPED;
-
-        File folder = new File(Environment.getExternalStorageDirectory() + File.separator + this.folderName);
-        String path = new File(folder, "record.mp4").getAbsolutePath();
-
-        VideoCreate instance = new VideoCreate();
-        instance.setListener(new VideoCreateListener() {
-            @Override
-            public void onPreparing() {
-                mRecorderListener.onSaving();
-            }
-
-            @Override
-            public void onSaved(String path) {
-                Toast.makeText(context, "done", Toast.LENGTH_SHORT).show();
-                clearScreenshots();
-                mRecorderListener.onFinish(path);
-            }
-
-            @Override
-            public void onFail(String message) {
-                Toast.makeText(context, "onFail", Toast.LENGTH_SHORT).show();
-                mRecorderListener.onSaveFailed();
-            }
-        });
-
-        VideoParams params = new VideoParams();
-        params.images = this.imageAddresses;
-        params.fps  =this.fps;
-        params.screenWidth = size.x;
-        params.screenHeight = size.y;
-        params.videoPath = path;
-
-        instance.execute(params);
+        this.statusFlag = Status.STOPPED;
+        recorderThread.stopRecording();
     }
 
     public void cancelRecording(){
-        stopFlag = Status.CANCELLED;
-        clearScreenshots();
+        statusFlag = Status.CANCELLED;
 
         mRecorderListener.onRecordCancel();
     }
 
-    private void clearScreenshots(){
-/*
-        for(String address:this.imageAddresses){
-            new File(address).delete();
-        }*/
-    }
-
-    private void takeScreenshot() {
-        if(stopFlag != Status.RECORDING){
+    private void recordFrame() {
+        if(statusFlag != Status.RECORDING){
             Log.d("recording", "takescreenshot status is not recording");
             return;
         }
 
-        long startTime = System.currentTimeMillis();
+        Screenshot ss = new Screenshot();
 
-        SSParams _SSParams = new SSParams();
-        _SSParams.count = count;
-        _SSParams.folderName = folderName;
+        long startTime = System.currentTimeMillis();
+        ss.time = System.currentTimeMillis();
+        ss.frameNumber = count;
+
+        Bitmap drawing = null;
         try {
             View rootView = activity.findViewById(android.R.id.content).getRootView();
-            _SSParams.drawing = Bitmap.createBitmap(size.x, size.y, Bitmap.Config.RGB_565);
-            Canvas canvas = new Canvas(_SSParams.drawing);
+            drawing = Bitmap.createBitmap(size.x, size.y, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(drawing);
             rootView.draw(canvas);
+        }
+        catch(Error e){
+
         }
         catch(Exception e){
             stopRecording();
         }
 
-        new AsyncTask<SSParams, String, String>(){
+        ss.bitmap = drawing;
+        recorderParams.queue.offer(ss);
 
-            @Override
-            protected String doInBackground(SSParams... params) {
-                SSParams mSSParams = params[0];
+        count++;
 
-                File imagePath = new File(Environment.getExternalStorageDirectory() + File.separator + mSSParams.folderName, "screenshot" + mSSParams.count + ".jpg");
-                FileOutputStream fos;
-                Log.d("screenshot", imagePath.getAbsolutePath());
-                try {
-                    fos = new FileOutputStream(imagePath);
-                    mSSParams.drawing.compress(Bitmap.CompressFormat.PNG, 100, fos);
-                    fos.flush();
-                    fos.close();
-
-                    mCallback.onSuccess(mSSParams.count, imagePath.getAbsolutePath());
-                } catch (IOException e) {
-                    mCallback.onFail(mSSParams.count, e);
-                }
-
-                return null;
-            }
-        }.execute(_SSParams);
-
-        this.count++;
         long finishTime = System.currentTimeMillis();
-        if(finishTime - initiateTime >= 10000){
+        if(finishTime - initiateTime >= 1000000){
             stopRecording();
         }
         else{
             int passedTime = (int) (finishTime - startTime);
             int delay = 1000/fps - passedTime;
+            Log.i("delay", delay +"");
             if(delay <= 0){
                 delay = 0;
             }
@@ -218,12 +155,11 @@ public class Recorder {
 
                 synchronized public void run() {
 
-                    takeScreenshot();
+                    recordFrame();
                 }
 
             }, delay);
 
-            Log.i("delay", delay +"");
         }
     }
 

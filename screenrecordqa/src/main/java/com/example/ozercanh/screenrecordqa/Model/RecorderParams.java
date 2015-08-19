@@ -1,14 +1,14 @@
 package com.example.ozercanh.screenrecordqa.Model;
 
-import java.util.ArrayList;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * Created by ozercanh on 18/08/2015.
  */
-public class VideoParams {
+public class RecorderParams {
     public String videoPath;
     public int fps;
     public int screenWidth;
     public int screenHeight;
-    public ArrayList<String> images;
+    public BlockingQueue<Screenshot> queue;
 }
