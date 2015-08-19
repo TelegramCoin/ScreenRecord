@@ -45,6 +45,11 @@ public class Recorder {
     private ArrayList<Integer> failedImages;
     private RecorderListener mRecorderListener;
 
+    public Recorder(Context context){
+        Utility.init(context);
+        this.context = context;
+    }
+
     public void onResume(Activity activity){
         this.activity = activity;
         Display display = activity.getWindowManager().getDefaultDisplay();
@@ -56,13 +61,7 @@ public class Recorder {
         activity = null;
     }
 
-    public Recorder(Context context){
-        this(context, 10);
-    }
-
-    public Recorder(Context context, int fps) {
-        Utility.init(context);
-        this.context = context;
+    public void setFps(int fps) {
         this.fps = fps;
     }
 
@@ -151,6 +150,9 @@ public class Recorder {
 
     private void clearScreenshots(){
 
+        for(String address:this.imageAddresses){
+            new File(address).delete();
+        }
     }
 
     private void takeScreenshot() {
@@ -221,6 +223,7 @@ public class Recorder {
             }, delay);
         }
     }
+
 
 
 }
