@@ -90,7 +90,7 @@ public class Recorder {
 
         if (!folder.exists()) {
             if(!folder.mkdir()){
-
+                mRecorderListener.onRecordFailed();
             }
         }
     }
@@ -114,7 +114,7 @@ public class Recorder {
         instance.setListener(new VideoCreateListener() {
             @Override
             public void onPreparing() {
-                mRecorderListener.onRecording();
+                mRecorderListener.onSaving();
             }
 
             @Override
@@ -149,14 +149,15 @@ public class Recorder {
     }
 
     private void clearScreenshots(){
-
+/*
         for(String address:this.imageAddresses){
             new File(address).delete();
-        }
+        }*/
     }
 
     private void takeScreenshot() {
         if(stopFlag != Status.RECORDING){
+            Log.d("recording", "takescreenshot status is not recording");
             return;
         }
 
@@ -186,7 +187,7 @@ public class Recorder {
                 Log.d("screenshot", imagePath.getAbsolutePath());
                 try {
                     fos = new FileOutputStream(imagePath);
-                    mSSParams.drawing.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                    mSSParams.drawing.compress(Bitmap.CompressFormat.PNG, 100, fos);
                     fos.flush();
                     fos.close();
 
@@ -201,7 +202,7 @@ public class Recorder {
 
         this.count++;
         long finishTime = System.currentTimeMillis();
-        if(finishTime - initiateTime >= 5000){
+        if(finishTime - initiateTime >= 10000){
             stopRecording();
         }
         else{
@@ -221,6 +222,8 @@ public class Recorder {
                 }
 
             }, delay);
+
+            Log.i("delay", delay +"");
         }
     }
 

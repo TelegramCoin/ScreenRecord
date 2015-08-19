@@ -27,7 +27,7 @@ public class VideoCreate extends AsyncTask<VideoParams, String, Void> {
 
         recorder.setVideoCodec(13);
         recorder.setFormat("mp4");
-        recorder.setFrameRate(1.0D);
+        recorder.setFrameRate((double)params.fps);
         recorder.setVideoQuality(1.0D);
         recorder.setVideoBitrate(40000);
 
@@ -47,12 +47,7 @@ public class VideoCreate extends AsyncTask<VideoParams, String, Void> {
 
             AndroidFrameConverter converter = new AndroidFrameConverter();
             Bitmap bitmap = BitmapFactory.decodeFile(params.images.get(i), new BitmapFactory.Options());
-            long l1 = 1000L * (System.currentTimeMillis() - l);
-            if (l1 < recorder.getTimestamp()) {
-                l1 = 1000L/params.fps + recorder.getTimestamp();
-            }
-
-            recorder.setTimestamp(l1);
+            
             try {
                 recorder.record(converter.convert(bitmap));
             } catch (org.bytedeco.javacv.FrameRecorder.Exception e) {

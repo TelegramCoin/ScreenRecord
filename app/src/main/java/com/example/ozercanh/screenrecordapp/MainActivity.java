@@ -1,22 +1,23 @@
 package com.example.ozercanh.screenrecordapp;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.example.ozercanh.screenrecordqa.RecorderBuilder;
 import com.example.ozercanh.screenrecordqa.Interface.RecorderListener;
 import com.example.ozercanh.screenrecordqa.Recorder;
+import com.example.ozercanh.screenrecordqa.RecorderBuilder;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Handler handler;
-    private Recorder myRecorder;
     private TextView textView;
+
+    public static Recorder myRecorder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,17 +55,47 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             @Override
-                            public void onFinish(String path) {
+                            public void onFinish(final String path) {
                                 textView.setText("finished " + path);
+                                textView.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(path));
+                                        intent.setDataAndType(Uri.parse(path), "video/mp4");
+                                        startActivity(intent);
+                                    }
+                                });
                             }
                         })
                         .build();
 
 
-        findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.start_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 myRecorder.startRecording();
+            }
+        });
+
+        findViewById(R.id.stop_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                myRecorder.stopRecording();
+            }
+        });
+
+        findViewById(R.id.cancel_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                myRecorder.cancelRecording();
+            }
+        });
+
+        findViewById(R.id.new_window_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent  = new Intent(MainActivity.this, SecondActivity.class);
+                startActivity(intent);
             }
         });
     }
