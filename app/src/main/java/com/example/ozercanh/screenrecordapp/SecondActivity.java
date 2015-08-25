@@ -43,16 +43,4 @@ public class SecondActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-        MainActivity.myRecorder.onResume(this);
-    }
-
-    @Override
-    public void onPause(){
-        super.onPause();
-        MainActivity.myRecorder.onPause();
-    }
 }

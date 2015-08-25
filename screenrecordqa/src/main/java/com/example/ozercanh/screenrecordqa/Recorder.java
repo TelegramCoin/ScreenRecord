@@ -22,32 +22,31 @@ import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Created by ozercanh on 18/08/2015.
+ * Created by Halil Ozercan on 18/08/2015.
  */
 public class Recorder {
 
-    private final Context context;
-    private String recordName;
     private int fps;
     private int count;
 
+    private Activity activity;
     private Status statusFlag;
     private long initiateTime;
-    private Activity activity;
     private Point size;
     private RecorderListener mRecorderListener;
-    private File videoFile;
 
-
-    private Handler handler;
     private RecorderThread recorderThread;
     private RecorderParams recorderParams;
 
     public Recorder(Context context){
         Utility.init(context);
-        this.context = context;
     }
 
+    /**
+     * Takes an activity and assumes it is the currently running activity.
+     * This activity provides a rootview for screenshot and also size for the video.
+     * This method should be called from {@link Activity} onResume.
+     */
     public void onResume(Activity activity){
         this.activity = activity;
         Display display = activity.getWindowManager().getDefaultDisplay();
@@ -55,22 +54,36 @@ public class Recorder {
         display.getSize(size);
     }
 
+    /**
+     * Makes the current activity null.
+     */
     public void onPause(){
         activity = null;
     }
 
+    /**
+     * Sets the maximum frame per seconds for the video.
+     * @param fps Desired maximum fps. Actual FPS can be lower due to memory problems.
+     */
     public void setFps(int fps) {
         this.fps = fps;
     }
 
+    /**
+     * Sets a recorder listener for callbacks.
+     * @param _listener A {@link RecorderListener} instance to use for callbacks.
+     */
     public void setRecorderListener(RecorderListener _listener){
         this.mRecorderListener = _listener;
     }
 
+    /**
+     * Initializes variables before the recording starts.
+     */
     private void initializeVariables() {
-        this.recordName = Utility.getNextRecordName();
-        this.handler = new Handler();
-        this.videoFile = new File(Environment.getExternalStorageDirectory() , this.recordName);
+        String recordName = Utility.getNextRecordName();
+        Handler handler = new Handler();
+        File videoFile = new File(Environment.getExternalStorageDirectory(), recordName);
         this.count = 0;
 
         recorderParams = new RecorderParams();
@@ -84,67 +97,85 @@ public class Recorder {
 
     }
 
+    /**
+     * Starts the recording instantly.
+     * This method should be called from outside.
+     */
     public void startRecording(){
         initializeVariables();
 
+        // Hold the starting time. If recording time goes over a constant limit, it'll be cancelled.
         initiateTime = System.currentTimeMillis();
 
         recorderThread.start();
         statusFlag = Status.RECORDING;
-        mRecorderListener.onStarted();
-        recordFrame();
+        saveFrame();
     }
 
+    /**
+     * Starts the stopping process.
+     * Recording does not finish immediately. This will only stop taking new screenshots.
+     * Queue should be cleaned first.
+     */
     public void stopRecording(){
         this.statusFlag = Status.STOPPED;
-        recorderThread.stopRecording();
+        recorderThread.stopRecording(true);
     }
 
+    /**
+     * Stops the recording instantly.
+     * Calling this method cancels all recording tasks and removes the video from files.
+     */
     public void cancelRecording(){
         statusFlag = Status.CANCELLED;
-
-        mRecorderListener.onRecordCancel();
+        recorderThread.stopRecording(false);
     }
 
-    private void recordFrame() {
+    /**
+     * Initiates the screenshot taking process.
+     * This method calls itself repeatedly. Delays are calculated according to maximum FPS
+     */
+    private void saveFrame() {
+        // Stop taking new screenshots
         if(statusFlag != Status.RECORDING){
             Log.d("recording", "takescreenshot status is not recording");
             return;
         }
 
+        // This object will be sent to video recording thread.
         Screenshot ss = new Screenshot();
-
-        long startTime = System.currentTimeMillis();
         ss.time = System.currentTimeMillis();
         ss.frameNumber = count;
 
+        // Hold the starting time to calculate how long does it take to draw a screenshot.
+        long startTime = System.currentTimeMillis();
+
         Bitmap drawing = null;
         try {
+            // Draw the view over a canvas whose bitmap reference is known to us.
             View rootView = activity.findViewById(android.R.id.content).getRootView();
             drawing = Bitmap.createBitmap(size.x, size.y, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(drawing);
             rootView.draw(canvas);
         }
-        catch(Error e){
-
-        }
-        catch(Exception e){
-            stopRecording();
+        catch(Error | Exception ignored){
+            //TODO : Make a log!
         }
 
         ss.bitmap = drawing;
         recorderParams.queue.offer(ss);
-
         count++;
 
         long finishTime = System.currentTimeMillis();
+
+        // Over time should stop recording.
         if(finishTime - initiateTime >= 1000000){
             stopRecording();
         }
         else{
             int passedTime = (int) (finishTime - startTime);
             int delay = 1000/fps - passedTime;
-            Log.i("delay", delay +"");
+            // If we are not able to achieve the maximum fps, at least continue with what we have!
             if(delay <= 0){
                 delay = 0;
             }
@@ -155,7 +186,7 @@ public class Recorder {
 
                 synchronized public void run() {
 
-                    recordFrame();
+                    saveFrame();
                 }
 
             }, delay);
@@ -164,5 +195,10 @@ public class Recorder {
     }
 
 
-
+    public boolean isRecording() {
+        if(statusFlag == Status.RECORDING)
+            return true;
+        else
+            return false;
+    }
 }

@@ -7,9 +7,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
 import com.example.ozercanh.screenrecordqa.Interface.RecorderListener;
+import com.example.ozercanh.screenrecordqa.RecordService;
 import com.example.ozercanh.screenrecordqa.Recorder;
 import com.example.ozercanh.screenrecordqa.RecorderBuilder;
 
@@ -26,45 +29,37 @@ public class MainActivity extends AppCompatActivity {
 
         textView = (TextView)findViewById(R.id.textview);
 
+        startService(new Intent(this, RecordService.class));
+
         myRecorder = new RecorderBuilder(this)
                         .setFps(10)
                         .setListener(new RecorderListener() {
+
                             @Override
-                            public void onStarted() {
-                                textView.setText("recording");
+                            public void onStart() {
+                                textView.setText("started");
                             }
 
                             @Override
-                            public void onRecordFailed() {
-                                textView.setText("record failed");
-                            }
-
-                            @Override
-                            public void onRecordCancel() {
-                                textView.setText("record cancelled");
-                            }
-
-                            @Override
-                            public void onSaving() {
-                                textView.setText("saving");
-                            }
-
-                            @Override
-                            public void onSaveFailed() {
-                                textView.setText("save failed");
+                            public void onFail(String reason) {
+                                textView.setText("failed " + reason);
                             }
 
                             @Override
                             public void onFinish(final String path) {
-                                textView.setText("finished " + path);
-                                textView.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(path));
-                                        intent.setDataAndType(Uri.parse(path), "video/mp4");
-                                        startActivity(intent);
-                                    }
-                                });
+                                if (path == null) {
+                                    textView.setText("failed");
+                                } else {
+                                    textView.setText("finished " + path);
+                                    textView.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(path));
+                                            intent.setDataAndType(Uri.parse(path), "video/mp4");
+                                            startActivity(intent);
+                                        }
+                                    });
+                                }
                             }
                         })
                         .build();
@@ -74,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 myRecorder.startRecording();
+                Animation hyperspaceJumpAnimation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.hyperspace_jump);
+                findViewById(R.id.cancel_button).startAnimation(hyperspaceJumpAnimation);
             }
         });
 
@@ -94,16 +91,10 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.new_window_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent  = new Intent(MainActivity.this, SecondActivity.class);
+                Intent intent = new Intent(MainActivity.this, SecondActivity.class);
                 startActivity(intent);
             }
         });
-    }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-        myRecorder.onResume(this);
     }
 
     @Override

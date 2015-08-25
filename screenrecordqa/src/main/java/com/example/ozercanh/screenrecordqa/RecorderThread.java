@@ -18,12 +18,29 @@ import java.util.concurrent.Semaphore;
  */
 public class RecorderThread extends Thread{
 
-    private final AndroidFrameConverter converter;
+    /**
+     * Protect the recording process.
+     */
     static Semaphore recordingMutex = new Semaphore(1);
+
+    /**
+     * Converts bitmap to recorable Frame.
+     * @see org.bytedeco.javacv.Frame
+     */
+    private final AndroidFrameConverter converter;
+
+    /**
+     * This listener should be sent from {@link Recorder}
+     */
     private final RecorderListener listener;
     private final RecorderParams params;
     private final Handler handler;
+
+    /**
+     * Makes the recording
+     */
     private FFmpegFrameRecorder recorder;
+
     private boolean stopFlag = false;
     private long initiateTime;
 
@@ -54,20 +71,17 @@ public class RecorderThread extends Thread{
             initiateTime = System.currentTimeMillis();
 
             recorder.start();
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onStart();
+                }
+            });
 
-        } catch (FrameRecorder.Exception e) {
-            e.printStackTrace();
-        }
+            while(!stopFlag || !params.queue.isEmpty()) {
+                readAndWrite();
+            }
 
-        while(!stopFlag) {
-            readAndWrite();
-        }
-
-        while(!params.queue.isEmpty()) {
-            readAndWrite();
-        }
-
-        try {
             recorder.stop();
             handler.post(new Runnable() {
                 @Override
@@ -77,11 +91,12 @@ public class RecorderThread extends Thread{
             });
 
         } catch (FrameRecorder.Exception e) {
+            stopRecording(false);
             e.printStackTrace();
         }
     }
 
-    private void readAndWrite() {
+    private void readAndWrite() throws FrameRecorder.Exception {
         try {
             Screenshot ss = params.queue.take();
 
@@ -89,21 +104,23 @@ public class RecorderThread extends Thread{
                 return;
             Log.d("bitmap", "read drawing with size" + ss.bitmap.getByteCount() + "");
 
-            recordingMutex.acquire();
-            //recorder.setTimestamp(ss.frameNumber);
             long currentTime = 1000L * (ss.time - initiateTime);
             recorder.setTimestamp(currentTime);
+
+            recordingMutex.acquire();
             recorder.record(converter.convert(ss.bitmap));
             recordingMutex.release();
 
-        } catch (org.bytedeco.javacv.FrameRecorder.Exception e) {
-            e.printStackTrace();
         } catch (InterruptedException e) {
+            stopRecording(false);
             e.printStackTrace();
         }
     }
 
-    public void stopRecording() {
+    public void stopRecording(boolean safe) {
+        if(!safe){
+            params.videoPath = null;
+        }
         stopFlag = true;
     }
 }
