@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.ozercanh.screenrecordqa" >
 
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:allowBackup="true"
@@ -12,6 +12,12 @@
             android:enabled="true"
             android:exported="true" >
         </service>
+
+        <activity
+            android:theme="@style/DialogTheme"
+            android:name=".StartActivity"
+            android:label="@string/title_activity_start" >
+        </activity>
     </application>
 
 </manifest>

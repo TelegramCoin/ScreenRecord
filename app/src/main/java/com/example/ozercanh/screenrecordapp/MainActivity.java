@@ -1,7 +1,6 @@
 package com.example.ozercanh.screenrecordapp;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -11,16 +10,11 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
-import com.example.ozercanh.screenrecordqa.Interface.RecorderListener;
 import com.example.ozercanh.screenrecordqa.RecordService;
-import com.example.ozercanh.screenrecordqa.Recorder;
-import com.example.ozercanh.screenrecordqa.RecorderBuilder;
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView textView;
-
-    public static Recorder myRecorder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
 
         startService(new Intent(this, RecordService.class));
 
-        myRecorder = new RecorderBuilder(this)
+        /*myRecorder = new RecorderBuilder(this)
                         .setFps(10)
                         .setListener(new RecorderListener() {
 
@@ -62,13 +56,13 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
                         })
-                        .build();
+                        .build();*/
 
 
         findViewById(R.id.start_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                myRecorder.startRecording();
+                //myRecorder.startRecording();
                 Animation hyperspaceJumpAnimation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.hyperspace_jump);
                 findViewById(R.id.cancel_button).startAnimation(hyperspaceJumpAnimation);
             }
@@ -77,14 +71,14 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.stop_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                myRecorder.stopRecording();
+                //myRecorder.stopRecording();
             }
         });
 
         findViewById(R.id.cancel_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                myRecorder.cancelRecording();
+                //myRecorder.cancelRecording();
             }
         });
 

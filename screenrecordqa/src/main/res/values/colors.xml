@@ -4,4 +4,8 @@
     <color name="primary_pressed">#FFEE44</color>
     <color name="ripple">#FFEE44</color>
     <color name="recording_primary">#FF3333</color>
+
+    <color name="recording_start">#88FF3333</color>
+    <color name="idle_start">#88FFCC00</color>
+    <color name="idle_end">#00FFFFFF</color>
 </resources>

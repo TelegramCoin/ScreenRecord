@@ -19,7 +19,7 @@ import com.example.ozercanh.screenrecordqa.Model.Status;
 import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by Halil Ozercan on 18/08/2015.
@@ -52,6 +52,7 @@ public class Recorder {
         Display display = activity.getWindowManager().getDefaultDisplay();
         size = new Point();
         display.getSize(size);
+        Log.d("injection", "Recorder will work with " + activity.getComponentName() + " " + size.x + " " + size.y);
     }
 
     /**
@@ -91,7 +92,7 @@ public class Recorder {
         recorderParams.fps = fps;
         recorderParams.screenWidth = size.x;
         recorderParams.screenHeight = size.y;
-        recorderParams.queue = new LinkedBlockingQueue<>();
+        recorderParams.queue = new ConcurrentLinkedQueue<>();
 
         recorderThread = new RecorderThread(recorderParams, mRecorderListener, handler);
 
@@ -163,13 +164,13 @@ public class Recorder {
         }
 
         ss.bitmap = drawing;
-        recorderParams.queue.offer(ss);
+        recorderParams.queue.add(ss);
         count++;
 
         long finishTime = System.currentTimeMillis();
 
         // Over time should stop recording.
-        if(finishTime - initiateTime >= 1000000){
+        if(finishTime - initiateTime >= 100000){
             stopRecording();
         }
         else{

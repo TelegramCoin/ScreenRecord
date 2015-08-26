@@ -1,24 +1,21 @@
 package com.example.ozercanh.screenrecordapp;
 
-import android.app.Activity;
 import android.app.Application;
-import android.util.Log;
 
-import com.taobao.android.dexposed.DexposedBridge;
-import com.taobao.android.dexposed.XC_MethodHook;
+import com.example.ozercanh.screenrecordqa.Place;
+import com.example.ozercanh.screenrecordqa.ScreenRecord;
+import com.example.ozercanh.screenrecordqa.Size;
 
 /**
  * Created by ozercanh on 25/08/2015.
  */
 public class ScreenRecordApp extends Application {
 
-    private boolean isSupport;
-    private boolean isLDevice;
 
     @Override
     public void onCreate(){
         super.onCreate();
 
-
+        ScreenRecord.with(this).maxFPS(2).place(Place.BOTTOM_LEFT).size(Size.MEDIUM).xposedActivity(true).start();
     }
 }

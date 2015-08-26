@@ -83,6 +83,7 @@ public class RecorderThread extends Thread{
             }
 
             recorder.stop();
+
             handler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -90,31 +91,31 @@ public class RecorderThread extends Thread{
                 }
             });
 
-        } catch (FrameRecorder.Exception e) {
-            stopRecording(false);
+        } catch (final FrameRecorder.Exception e) {
+            Log.d("recorder", "exception in run " + e.getMessage());
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onFail(e.getMessage());
+                }
+            });
             e.printStackTrace();
         }
+
     }
 
     private void readAndWrite() throws FrameRecorder.Exception {
-        try {
-            Screenshot ss = params.queue.take();
+        Screenshot ss = params.queue.poll();
 
-            if(ss==null || ss.bitmap==null)
-                return;
-            Log.d("bitmap", "read drawing with size" + ss.bitmap.getByteCount() + "");
+        if(ss==null || ss.bitmap==null)
+            return;
+        Log.d("bitmap", "read drawing with size" + ss.bitmap.getByteCount() + "");
 
-            long currentTime = 1000L * (ss.time - initiateTime);
-            recorder.setTimestamp(currentTime);
+        long currentTime = 1000L * (ss.time - initiateTime);
+        recorder.setTimestamp(currentTime);
 
-            recordingMutex.acquire();
-            recorder.record(converter.convert(ss.bitmap));
-            recordingMutex.release();
+        recorder.record(converter.convert(ss.bitmap));
 
-        } catch (InterruptedException e) {
-            stopRecording(false);
-            e.printStackTrace();
-        }
     }
 
     public void stopRecording(boolean safe) {
