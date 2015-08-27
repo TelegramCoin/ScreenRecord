@@ -19,12 +19,14 @@ import com.taobao.android.dexposed.XC_MethodHook;
 public class Utility {
     private static Context context;
     private static SharedPreferences prefs;
+    private static ScreenRecordDatabase db;
     private static Application app;
     private static Recorder myRecorder;
 
     public static void init(Context con){
         context = con;
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        db = new ScreenRecordDatabase(con);
     }
 
     public static String getNextRecordName(){
@@ -97,5 +99,9 @@ public class Utility {
 
     public static void setRecorder(Recorder myRecorder) {
         Utility.myRecorder = myRecorder;
+    }
+
+    public static ScreenRecordDatabase getDB() {
+        return db;
     }
 }

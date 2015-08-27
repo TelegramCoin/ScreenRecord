@@ -17,4 +17,7 @@
     <string name="screen_record">Screen Record</string>
     <string name="title_activity_after_record">AfterRecordActivity</string>
     <string name="what_to_do">What to do</string>
+    <string name="save">Save</string>
+    <string name="title">Title</string>
+    <string name="desc">Description</string>
 </resources>
