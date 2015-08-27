@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="DialogTheme" parent="Theme.AppCompat.Light.Dialog">
+    <style name="DialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
         <item name="android:windowNoTitle">true</item>
-        <item name="windowActionBar">false</item>
     </style>
 </resources>

@@ -1,16 +1,17 @@
 package com.example.ozercanh.screenrecordqa;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import com.taobao.android.dexposed.DexposedBridge;
 import com.taobao.android.dexposed.XC_MethodHook;
-
-import static com.example.ozercanh.screenrecordqa.ScreenRecord.myRecorder;
 
 /**
  * Created by ozercanh on 18/08/2015.
@@ -18,6 +19,8 @@ import static com.example.ozercanh.screenrecordqa.ScreenRecord.myRecorder;
 public class Utility {
     private static Context context;
     private static SharedPreferences prefs;
+    private static Application app;
+    private static Recorder myRecorder;
 
     public static void init(Context con){
         context = con;
@@ -28,6 +31,21 @@ public class Utility {
         int last = prefs.getInt("recordname", 0);
         prefs.edit().putInt("recordname", last+1).apply();
         return "record" + last + ".mp4";
+    }
+
+    public static String getMimeType(String url) {
+        String type = null;
+        String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+
+        if (extension != null) {
+            MimeTypeMap mime = MimeTypeMap.getSingleton();
+            type = mime.getMimeTypeFromExtension(extension);
+
+            if (TextUtils.isEmpty(type))
+                type = "video/*"; // No MIME type found, so use the video wildcard
+        }
+
+        return type;
     }
 
     public static boolean hookActivityMethods(Context con) {
@@ -59,5 +77,25 @@ public class Utility {
             Log.e("dexposed","This device does not support injection. Falling back to manual call mode.");
             return false;
         }
+    }
+
+    public static Context getContext() {
+        return context;
+    }
+
+    public static Application getApp() {
+        return app;
+    }
+
+    public static Recorder getRecorder(){
+        return myRecorder;
+    }
+
+    public static void setApp(Application app) {
+        Utility.app = app;
+    }
+
+    public static void setRecorder(Recorder myRecorder) {
+        Utility.myRecorder = myRecorder;
     }
 }

@@ -16,7 +16,7 @@ import java.util.concurrent.Semaphore;
 /**
  * Created by ozercanh on 19/08/2015.
  */
-public class RecorderThread extends Thread{
+public class VideoRecorderThread extends Thread{
 
     /**
      * Protect the recording process.
@@ -44,7 +44,7 @@ public class RecorderThread extends Thread{
     private boolean stopFlag = false;
     private long initiateTime;
 
-    public RecorderThread(RecorderParams params, RecorderListener listener, Handler handler){
+    public VideoRecorderThread(RecorderParams params, RecorderListener listener, Handler handler){
         this.converter = new AndroidFrameConverter();
 
         this.params = params;

@@ -97,13 +97,14 @@
     <orderEntry type="library" exported="" name="ffmpeg-2.7.1-1.0" level="project" />
     <orderEntry type="library" exported="" name="videoinput-0.200-1.0" level="project" />
     <orderEntry type="library" exported="" name="javacv" level="project" />
-    <orderEntry type="library" exported="" name="support-annotations-22.2.1" level="project" />
     <orderEntry type="library" exported="" name="opencv-3.0.0-1.0" level="project" />
+    <orderEntry type="library" exported="" name="support-annotations-22.2.1" level="project" />
     <orderEntry type="library" exported="" name="flandmark-1.07-1.0" level="project" />
     <orderEntry type="library" exported="" name="recyclerview-v7-21.0.3" level="project" />
     <orderEntry type="library" exported="" name="libdc1394-2.2.3-1.0" level="project" />
     <orderEntry type="library" exported="" name="javacv-1.0" level="project" />
     <orderEntry type="library" exported="" name="patchloader" level="project" />
+    <orderEntry type="library" exported="" name="cardview-v7-23.0.0" level="project" />
     <orderEntry type="library" exported="" name="javacpp-1.0" level="project" />
     <orderEntry type="library" exported="" name="support-v4-22.2.1" level="project" />
     <orderEntry type="library" exported="" name="artoolkitplus-2.3.1-1.0" level="project" />

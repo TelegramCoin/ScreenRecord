@@ -1,15 +1,19 @@
 package com.example.ozercanh.screenrecordqa;
 
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.Application;
 import android.app.Service;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.view.GestureDetectorCompat;
-import android.util.Log;
+import android.support.v7.widget.CardView;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -17,12 +21,14 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.example.ozercanh.screenrecordqa.Interface.RecorderListener;
+import com.example.ozercanh.screenrecordqa.Model.Place;
+import com.example.ozercanh.screenrecordqa.Model.Size;
 import com.melnykov.fab.FloatingActionButton;
-
-import static com.example.ozercanh.screenrecordqa.ScreenRecord.myRecorder;
 
 public class RecordService extends Service {
 
@@ -43,6 +49,14 @@ public class RecordService extends Service {
     private GestureDetectorCompat mDetector;
     private int openMargin;
     private int closeMargin;
+    private RelativeLayout activeLayout;
+    private CardView cardView;
+    private TextView recordingTextView;
+    private WindowManager.LayoutParams windowParams;
+    private LinearLayout contentHolderLayout;
+    private Boolean timerRunning = Boolean.FALSE;
+    private int runningSeconds = 0;
+    private boolean xposed;
 
     @Override public IBinder onBind(Intent intent) {
         // Not used
@@ -57,71 +71,32 @@ public class RecordService extends Service {
         }
 
         if(intent.getAction().equals("start")){
+
             this.packageName = intent.getStringExtra("package");
             this.fps = intent.getIntExtra("fps", 10);
             this.where = (Place) intent.getSerializableExtra("where");
             this.size = (Size) intent.getSerializableExtra("size");
+            this.xposed = intent.getBooleanExtra("xposed", false);
+
+            PreferenceManager.getDefaultSharedPreferences(this).edit().putInt("where", Place.toInt(where)).apply();
         }
         else if(intent.getAction().equals("startRecording")){
-            Log.d("injection", "start recording from action");
-            myRecorder.startRecording();
 
+            Utility.getRecorder().startRecording();
+            return START_NOT_STICKY;
+        }
+        else if(intent.getAction().equals("update_settings")){
+
+            updateSettings();
+            return START_NOT_STICKY;
+        }
+        else if(intent.getAction().equals("on_activity_change")){
+
+            activityChanged();
             return START_NOT_STICKY;
         }
 
         mHandler = new Handler();
-
-        myRecorder = new RecorderBuilder(this)
-                .setFps(fps)
-                .setListener(new RecorderListener() {
-
-                    @Override
-                    public void onStart() {
-                        recordButton.setColorNormalResId(R.color.recording_primary);
-                        recordButton.startAnimation(rotateAnimation);
-                    }
-
-                    @Override
-                    public void onFail(String reason) {
-                        recordButton.setColorNormalResId(R.color.primary);
-                        recordButton.clearAnimation();
-                    }
-
-                    @Override
-                    public void onFinish(final String path) {
-
-                        recordButton.setColorNormalResId(R.color.primary);
-                        recordButton.clearAnimation();
-                        /*if (path == null) {
-                            textView.setText("failed");
-                        } else {
-                            textView.setText("finished " + path);
-                            textView.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(path));
-                                    intent.setDataAndType(Uri.parse(path), "video/mp4");
-                                    startActivity(intent);
-                                }
-                            });
-                        }*/
-                    }
-                })
-                .build();
-
-        try {
-            ActivityInfo[] list = getPackageManager().getPackageInfo(packageName, PackageManager.GET_ACTIVITIES).activities;
-
-            for(int i = 0;i< list.length;i++)
-            {
-                Log.i("activity", "Activity "+list[i].name);
-            }
-        }
-        catch (PackageManager.NameNotFoundException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
-
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         Point dimen = new Point();
         windowManager.getDefaultDisplay().getSize(dimen);
@@ -129,19 +104,68 @@ public class RecordService extends Service {
         rotateAnimation = AnimationUtils.loadAnimation(this, R.anim.rotate_animation);
 
         recorderLayout = (RelativeLayout) View.inflate(this, R.layout.recorder_layout, null);
+        activeLayout = (RelativeLayout) recorderLayout.findViewById(R.id.active_layout);
         recordButton = (FloatingActionButton) recorderLayout.findViewById(R.id.fab);
+        cardView = (CardView) recorderLayout.findViewById(R.id.card_view);
+        recordingTextView = (TextView) recorderLayout.findViewById(R.id.recording_textview);
+        contentHolderLayout = (LinearLayout) recorderLayout.findViewById(R.id.content_holder_layout);
+
+        recordingTextView.setText(getString(R.string.settings));
+        recordingTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!Utility.getRecorder().isRecording()) {
+                    Intent intent = new Intent(RecordService.this, SettingsActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                }
+            }
+        });
 
         recordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!myRecorder.isRecording()) {
-                    Intent intent = new Intent(RecordService.this, StartActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
+                if (!Utility.getRecorder().isRecording()) {
+                    if (xposed) {
+                        Intent intent = new Intent(RecordService.this, StartActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    } else {
+                        Utility.getRecorder().startRecording();
+                    }
+                } else {
+                    Utility.getRecorder().stopRecording();
                 }
-                else{
-                    myRecorder.stopRecording();
-                }
+            }
+        });
+
+        Utility.getRecorder().setFps(fps);
+        Utility.getRecorder().setRecorderListener(new RecorderListener() {
+
+            @Override
+            public void onStart() {
+                recordButton.setColorNormalResId(R.color.recording_primary);
+                recordButton.startAnimation(rotateAnimation);
+                startTimer();
+            }
+
+            @Override
+            public void onFail(String reason) {
+                recordButton.setColorNormalResId(R.color.primary);
+                recordButton.clearAnimation();
+                recordingTextView.setText(getString(R.string.settings));
+                stopTimer();
+                pushFailNotification(reason);
+            }
+
+            @Override
+            public void onFinish(final String path) {
+
+                recordButton.setColorNormalResId(R.color.primary);
+                recordButton.clearAnimation();
+                recordingTextView.setText(getString(R.string.settings));
+                stopTimer();
+                pushSuccessNotification(path);
             }
         });
 
@@ -239,7 +263,7 @@ public class RecordService extends Service {
                 break;
         }
 
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+        windowParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
@@ -249,31 +273,172 @@ public class RecordService extends Service {
         openMargin = (int) getResources().getDimension(R.dimen.open_margin);
         closeMargin = (int) getResources().getDimension(R.dimen.close_margin);
 
-        switch (where){
-            case TOP_LEFT:
-                params.gravity = Gravity.TOP | Gravity.LEFT;
-                recorderLayout.setPadding(closeMargin, closeMargin, openMargin, openMargin); //substitute parameters for left, top, right, bottom
-                break;
-            case TOP_RIGHT:
-                params.gravity = Gravity.TOP | Gravity.RIGHT;
-                recorderLayout.setPadding(openMargin, closeMargin, closeMargin, openMargin); //substitute parameters for left, top, right, bottom
-                break;
-            case BOTTOM_LEFT:
-                params.gravity = Gravity.BOTTOM | Gravity.LEFT;
-                recorderLayout.setPadding(closeMargin, openMargin, openMargin, closeMargin); //substitute parameters for left, top, right, bottom
-                break;
-            case BOTTOM_RIGHT:
-                params.gravity = Gravity.BOTTOM | Gravity.RIGHT;
-                recorderLayout.setPadding(openMargin, openMargin, closeMargin, closeMargin); //substitute parameters for left, top, right, bottom
-                break;
-        }
+        placeWidget(false);
 
-        params.x = 0;
-        params.y = 0;
+        windowParams.x = 0;
+        windowParams.y = 0;
 
-        windowManager.addView(recorderLayout, params);
+        windowManager.addView(recorderLayout, windowParams);
 
         return START_STICKY;
+    }
+
+    private void activityChanged() {
+        Activity current = Utility.getRecorder().getActivity();
+        if(current == null){
+            recorderLayout.setVisibility(View.GONE);
+        }
+        else{
+            if(isActivityFromApplication(current, Utility.getApp())){
+                recorderLayout.setVisibility(View.VISIBLE);
+            }
+            else{
+                recorderLayout.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private boolean isActivityFromApplication(Activity current, Application app) {
+        if(current.getClass().equals(SettingsActivity.class))
+            return false;
+        else if(current.getClass().equals(AfterRecordActivity.class))
+            return false;
+        else if(current.getPackageName().equals(app.getPackageName()))
+            return true;
+
+        return false;
+    }
+
+    private void updateSettings() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        switch (prefs.getString("position","1" )){
+            case "1":
+                where = Place.TOP_LEFT;
+                break;
+            case "2":
+                where = Place.TOP_RIGHT;
+                break;
+            case "3":
+                where = Place.BOTTOM_LEFT;
+                break;
+            case "4":
+                where = Place.BOTTOM_RIGHT;
+                break;
+        }
+        placeWidget(true);
+    }
+
+    private void pushFailNotification(String reason) {
+
+    }
+
+    private void pushSuccessNotification(String path) {
+        Intent intent = new Intent(this, AfterRecordActivity.class);
+        intent.putExtra("path", path);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
+    private void startTimer() {
+        timerRunning = true;
+        Thread timerThread = new Thread(){
+            public void run(){
+                synchronized (timerRunning){
+                    while(timerRunning && Utility.getRecorder().isRecording()){
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                recordingTextView.setText(String.format("%02d:%02d:%02d", runningSeconds / 3600, (runningSeconds % 3600) / 60, runningSeconds % 60));
+                            }
+                        });
+                        try {
+                            Thread.sleep(1000);
+                            runningSeconds++;
+                        } catch (InterruptedException e) {
+                            timerRunning = false;
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        };
+        timerThread.start();
+        timerRunning = true;
+    }
+
+    private void stopTimer(){
+        synchronized (timerRunning){
+            timerRunning = false;
+            runningSeconds = 0;
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+    private void placeWidget(boolean updateFlag) {
+
+        RelativeLayout.LayoutParams contentHolderParams = (RelativeLayout.LayoutParams) contentHolderLayout.getLayoutParams();
+        RelativeLayout.LayoutParams recordButtonParams = (RelativeLayout.LayoutParams) recordButton.getLayoutParams();
+
+        switch (where){
+            case TOP_LEFT:
+                windowParams.gravity = Gravity.TOP | Gravity.LEFT;
+                recorderLayout.setPadding(closeMargin, closeMargin, openMargin, openMargin); //substitute parameters for left, top, right, bottom
+
+                recordButtonParams.removeRule(RelativeLayout.RIGHT_OF);
+                recordButtonParams.removeRule(RelativeLayout.ALIGN_PARENT_LEFT);
+
+                contentHolderParams.removeRule(RelativeLayout.RIGHT_OF);
+                contentHolderParams.removeRule(RelativeLayout.ALIGN_PARENT_LEFT);
+
+                recordButtonParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                contentHolderParams.addRule(RelativeLayout.RIGHT_OF, R.id.fab);
+                break;
+            case TOP_RIGHT:
+                windowParams.gravity = Gravity.TOP | Gravity.RIGHT;
+                recorderLayout.setPadding(openMargin, closeMargin, closeMargin, openMargin); //substitute parameters for left, top, right, bottom
+
+                recordButtonParams.removeRule(RelativeLayout.RIGHT_OF);
+                recordButtonParams.removeRule(RelativeLayout.ALIGN_PARENT_LEFT);
+
+                contentHolderParams.removeRule(RelativeLayout.RIGHT_OF);
+                contentHolderParams.removeRule(RelativeLayout.ALIGN_PARENT_LEFT);
+
+                contentHolderParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                recordButtonParams.addRule(RelativeLayout.RIGHT_OF, R.id.content_holder_layout);
+                break;
+            case BOTTOM_LEFT:
+                windowParams.gravity = Gravity.BOTTOM | Gravity.LEFT;
+                recorderLayout.setPadding(closeMargin, openMargin, openMargin, closeMargin); //substitute parameters for left, top, right, bottom
+
+                recordButtonParams.removeRule(RelativeLayout.RIGHT_OF);
+                recordButtonParams.removeRule(RelativeLayout.ALIGN_PARENT_LEFT);
+
+                contentHolderParams.removeRule(RelativeLayout.RIGHT_OF);
+                contentHolderParams.removeRule(RelativeLayout.ALIGN_PARENT_LEFT);
+
+                recordButtonParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                contentHolderParams.addRule(RelativeLayout.RIGHT_OF, R.id.fab);
+                break;
+            case BOTTOM_RIGHT:
+                windowParams.gravity = Gravity.BOTTOM | Gravity.RIGHT;
+                recorderLayout.setPadding(openMargin, openMargin, closeMargin, closeMargin); //substitute parameters for left, top, right, bottom
+
+                recordButtonParams.removeRule(RelativeLayout.RIGHT_OF);
+                recordButtonParams.removeRule(RelativeLayout.ALIGN_PARENT_LEFT);
+
+                contentHolderParams.removeRule(RelativeLayout.RIGHT_OF);
+                contentHolderParams.removeRule(RelativeLayout.ALIGN_PARENT_LEFT);
+
+                contentHolderParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                recordButtonParams.addRule(RelativeLayout.RIGHT_OF, R.id.content_holder_layout);
+                break;
+        }
+        contentHolderLayout.setLayoutParams(contentHolderParams);
+        recordButton.setLayoutParams(recordButtonParams);
+
+        if(updateFlag) {
+            windowManager.updateViewLayout(recorderLayout, windowParams);
+        }
     }
 
     private void hide(){
@@ -286,9 +451,8 @@ public class RecordService extends Service {
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                recordButton.setVisibility(View.GONE);
 
-                if(!myRecorder.isRecording())
+                if(!Utility.getRecorder().isRecording())
                     switch (where){
                         case TOP_LEFT:
                             recorderLayout.setBackgroundDrawable(getResources().getDrawable(R.drawable.top_left_idle_bg));
@@ -318,6 +482,8 @@ public class RecordService extends Service {
                             recorderLayout.setBackgroundDrawable(getResources().getDrawable(R.drawable.bottom_right_recording_bg));
                             break;
                     }
+
+                activeLayout.setVisibility(View.GONE);
             }
 
             @Override
@@ -325,7 +491,7 @@ public class RecordService extends Service {
 
             }
         });
-        recordButton.startAnimation(hideAnimation);
+        activeLayout.startAnimation(hideAnimation);
 
     }
 
@@ -335,10 +501,10 @@ public class RecordService extends Service {
             @Override
             public void onAnimationStart(Animation animation) {
                 recorderLayout.setBackgroundDrawable(null);
-                if(myRecorder.isRecording()){
+                if(Utility.getRecorder().isRecording()){
                     recordButton.startAnimation(rotateAnimation);
                 }
-                recordButton.setVisibility(View.VISIBLE);
+                activeLayout.setVisibility(View.VISIBLE);
             }
 
             @Override
@@ -352,7 +518,7 @@ public class RecordService extends Service {
 
             }
         });
-        recordButton.startAnimation(showAnimation);
+        activeLayout.startAnimation(showAnimation);
     }
 
     @Override

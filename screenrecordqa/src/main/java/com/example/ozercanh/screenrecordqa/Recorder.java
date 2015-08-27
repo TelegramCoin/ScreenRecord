@@ -2,6 +2,7 @@ package com.example.ozercanh.screenrecordqa;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Point;
@@ -35,7 +36,7 @@ public class Recorder {
     private Point size;
     private RecorderListener mRecorderListener;
 
-    private RecorderThread recorderThread;
+    private VideoRecorderThread videoRecorderThread;
     private RecorderParams recorderParams;
 
     public Recorder(Context context){
@@ -53,6 +54,10 @@ public class Recorder {
         size = new Point();
         display.getSize(size);
         Log.d("injection", "Recorder will work with " + activity.getComponentName() + " " + size.x + " " + size.y);
+
+        Intent intent = new Intent(Utility.getContext(), RecordService.class);
+        intent.setAction("on_activity_change");
+        Utility.getContext().startService(intent);
     }
 
     /**
@@ -60,6 +65,10 @@ public class Recorder {
      */
     public void onPause(){
         activity = null;
+
+        Intent intent = new Intent(Utility.getContext(), RecordService.class);
+        intent.setAction("on_activity_change");
+        Utility.getContext().startService(intent);
     }
 
     /**
@@ -94,7 +103,7 @@ public class Recorder {
         recorderParams.screenHeight = size.y;
         recorderParams.queue = new ConcurrentLinkedQueue<>();
 
-        recorderThread = new RecorderThread(recorderParams, mRecorderListener, handler);
+        videoRecorderThread = new VideoRecorderThread(recorderParams, mRecorderListener, handler);
 
     }
 
@@ -108,7 +117,7 @@ public class Recorder {
         // Hold the starting time. If recording time goes over a constant limit, it'll be cancelled.
         initiateTime = System.currentTimeMillis();
 
-        recorderThread.start();
+        videoRecorderThread.start();
         statusFlag = Status.RECORDING;
         saveFrame();
     }
@@ -120,7 +129,7 @@ public class Recorder {
      */
     public void stopRecording(){
         this.statusFlag = Status.STOPPED;
-        recorderThread.stopRecording(true);
+        videoRecorderThread.stopRecording(true);
     }
 
     /**
@@ -129,7 +138,7 @@ public class Recorder {
      */
     public void cancelRecording(){
         statusFlag = Status.CANCELLED;
-        recorderThread.stopRecording(false);
+        videoRecorderThread.stopRecording(false);
     }
 
     /**
@@ -195,6 +204,9 @@ public class Recorder {
         }
     }
 
+    public Activity getActivity(){
+        return activity;
+    }
 
     public boolean isRecording() {
         if(statusFlag == Status.RECORDING)

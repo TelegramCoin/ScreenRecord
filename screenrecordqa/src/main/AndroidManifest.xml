@@ -14,9 +14,18 @@
         </service>
 
         <activity
-            android:theme="@style/DialogTheme"
             android:name=".StartActivity"
-            android:label="@string/title_activity_start" >
+            android:label="@string/title_activity_start"
+            android:theme="@style/DialogTheme" >
+        </activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings" >
+        </activity>
+        <activity
+            android:theme="@style/DialogTheme"
+            android:name=".AfterRecordActivity"
+            android:label="@string/title_activity_after_record" >
         </activity>
     </application>
 
