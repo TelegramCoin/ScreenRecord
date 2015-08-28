@@ -1,1 +1,1 @@
-include ':app', ':screenrecordqa'
+include ':sample', ':library'
