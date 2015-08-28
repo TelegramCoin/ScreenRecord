@@ -1,4 +1,4 @@
-package com.example.ozercanh.screenrecordqa;
+package com.halilibo.screenrecorddebug.View;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,6 +6,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
+
+import com.halilibo.screenrecorddebug.R;
+import com.halilibo.screenrecorddebug.RecordService;
 
 import java.util.Timer;
 import java.util.TimerTask;

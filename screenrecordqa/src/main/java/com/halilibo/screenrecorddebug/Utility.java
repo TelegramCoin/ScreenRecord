@@ -1,4 +1,4 @@
-package com.example.ozercanh.screenrecordqa;
+package com.halilibo.screenrecorddebug;
 
 import android.app.Activity;
 import android.app.Application;

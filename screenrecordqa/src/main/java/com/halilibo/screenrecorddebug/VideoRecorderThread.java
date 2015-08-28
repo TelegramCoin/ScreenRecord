@@ -1,11 +1,11 @@
-package com.example.ozercanh.screenrecordqa;
+package com.halilibo.screenrecorddebug;
 
 import android.os.Handler;
 import android.util.Log;
 
-import com.example.ozercanh.screenrecordqa.Interface.RecorderListener;
-import com.example.ozercanh.screenrecordqa.Model.RecorderParams;
-import com.example.ozercanh.screenrecordqa.Model.Screenshot;
+import com.halilibo.screenrecorddebug.Interface.RecorderListener;
+import com.halilibo.screenrecorddebug.Model.RecorderParams;
+import com.halilibo.screenrecorddebug.Model.Screenshot;
 
 import org.bytedeco.javacv.AndroidFrameConverter;
 import org.bytedeco.javacv.FFmpegFrameRecorder;

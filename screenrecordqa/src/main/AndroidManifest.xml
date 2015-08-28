@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.ozercanh.screenrecordqa" >
+    package="com.halilibo.screenrecorddebug" >
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
@@ -14,18 +14,33 @@
         </service>
 
         <activity
-            android:name=".StartActivity"
+            android:name=".View.StartActivity"
             android:label="@string/title_activity_start"
             android:theme="@style/DialogTheme" >
         </activity>
         <activity
-            android:name=".SettingsActivity"
+            android:name=".View.SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
         <activity
+            android:name=".View.AfterRecordActivity"
+            android:label="@string/title_activity_after_record"
+            android:theme="@style/DialogTheme" >
+        </activity>
+        <activity
+            android:name=".View.HistoryActivity"
+            android:label="@string/title_activity_history"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" >
+            <intent-filter>
+                <action android:name="com.halilibo.screenrecorddebug.HISTORY_ACTION" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
             android:theme="@style/DialogTheme"
-            android:name=".AfterRecordActivity"
-            android:label="@string/title_activity_after_record" >
+            android:name=".View.RecordedVideoActivity"
+            android:label="@string/title_activity_recorded_video" >
         </activity>
     </application>
 

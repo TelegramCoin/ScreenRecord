@@ -20,4 +20,10 @@
     <string name="save">Save</string>
     <string name="title">Title</string>
     <string name="desc">Description</string>
+    <string name="title_recorded_videos">History</string>
+    <string name="summary_recorded_videos">Earlier recorded videos</string>
+    <string name="title_activity_history">HistoryActivity</string>
+    <string name="saved">Saved</string>
+    <string name="save_details">Save Details</string>
+    <string name="title_activity_recorded_video">RecordedVideoActivity</string>
 </resources>

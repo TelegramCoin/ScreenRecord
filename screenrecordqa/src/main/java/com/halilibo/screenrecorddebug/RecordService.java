@@ -1,4 +1,5 @@
-package com.example.ozercanh.screenrecordqa;
+package com.halilibo.screenrecorddebug;
+
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -25,9 +26,14 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.example.ozercanh.screenrecordqa.Interface.RecorderListener;
-import com.example.ozercanh.screenrecordqa.Model.Place;
-import com.example.ozercanh.screenrecordqa.Model.Size;
+import com.halilibo.screenrecorddebug.Interface.RecorderListener;
+import com.halilibo.screenrecorddebug.Model.Place;
+import com.halilibo.screenrecorddebug.Model.Size;
+import com.halilibo.screenrecorddebug.View.AfterRecordActivity;
+import com.halilibo.screenrecorddebug.View.HistoryActivity;
+import com.halilibo.screenrecorddebug.View.RecordedVideoActivity;
+import com.halilibo.screenrecorddebug.View.SettingsActivity;
+import com.halilibo.screenrecorddebug.View.StartActivity;
 import com.melnykov.fab.FloatingActionButton;
 
 public class RecordService extends Service {
@@ -298,10 +304,21 @@ public class RecordService extends Service {
         }
     }
 
+    /**
+     * TODO
+     * This method is ugly. It needs to get activity list from library and iterate over them.
+     * @param current
+     * @param app
+     * @return
+     */
     private boolean isActivityFromApplication(Activity current, Application app) {
         if(current.getClass().equals(SettingsActivity.class))
             return false;
         else if(current.getClass().equals(AfterRecordActivity.class))
+            return false;
+        else if(current.getClass().equals(HistoryActivity.class))
+            return false;
+        else if(current.getClass().equals(RecordedVideoActivity.class))
             return false;
         else if(current.getPackageName().equals(app.getPackageName()))
             return true;

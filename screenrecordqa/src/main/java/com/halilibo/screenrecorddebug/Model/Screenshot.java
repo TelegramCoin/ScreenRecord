@@ -1,4 +1,4 @@
-package com.example.ozercanh.screenrecordqa.Model;
+package com.halilibo.screenrecorddebug.Model;
 
 import android.graphics.Bitmap;
 

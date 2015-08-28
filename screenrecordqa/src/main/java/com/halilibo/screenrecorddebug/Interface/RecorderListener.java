@@ -1,4 +1,4 @@
-package com.example.ozercanh.screenrecordqa.Interface;
+package com.halilibo.screenrecorddebug.Interface;
 
 /**
  * Created by ozercanh on 19/08/2015.

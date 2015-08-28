@@ -1,4 +1,4 @@
-package com.example.ozercanh.screenrecordqa;
+package com.halilibo.screenrecorddebug;
 
 import android.app.Activity;
 import android.app.Application;
@@ -8,8 +8,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.example.ozercanh.screenrecordqa.Model.Place;
-import com.example.ozercanh.screenrecordqa.Model.Size;
+import com.halilibo.screenrecorddebug.Model.Place;
+import com.halilibo.screenrecorddebug.Model.Size;
 import com.taobao.android.dexposed.DexposedBridge;
 
 /**

@@ -8,4 +8,12 @@
         android:entries="@array/positionArray"
         android:entryValues="@array/positionValues" />
 
+    <PreferenceScreen
+        android:title="@string/title_recorded_videos"
+        android:summary="@string/summary_recorded_videos">
+
+        <intent android:action="com.halilibo.screenrecorddebug.HISTORY_ACTION"/>
+
+    </PreferenceScreen>
+
 </PreferenceScreen>

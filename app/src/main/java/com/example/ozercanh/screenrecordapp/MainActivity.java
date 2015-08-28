@@ -10,7 +10,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
-import com.example.ozercanh.screenrecordqa.RecordService;
+import com.halilibo.screenrecorddebug.RecordService;
+
 
 public class MainActivity extends AppCompatActivity {
 

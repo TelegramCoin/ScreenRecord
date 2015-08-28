@@ -1,4 +1,4 @@
-package com.example.ozercanh.screenrecordqa.Model;
+package com.halilibo.screenrecorddebug.Model;
 
 /**
  * Created by ozercanh on 26/08/2015.

@@ -1,8 +1,11 @@
-package com.example.ozercanh.screenrecordqa;
+package com.halilibo.screenrecorddebug.View;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
+
+import com.halilibo.screenrecorddebug.R;
+import com.halilibo.screenrecorddebug.RecordService;
 
 public class SettingsActivity extends PreferenceActivity {
     @Override

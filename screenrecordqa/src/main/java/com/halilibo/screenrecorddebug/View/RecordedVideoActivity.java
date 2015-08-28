@@ -1,4 +1,4 @@
-package com.example.ozercanh.screenrecordqa;
+package com.halilibo.screenrecorddebug.View;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -8,29 +8,39 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.halilibo.screenrecorddebug.Model.RecordedVideo;
+import com.halilibo.screenrecorddebug.R;
+import com.halilibo.screenrecorddebug.Utility;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class AfterRecordActivity extends AppCompatActivity {
+public class RecordedVideoActivity extends AppCompatActivity {
 
-    private Intent intent;
+    private RecordedVideo recordedVideo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_after_record);
+        setContentView(R.layout.activity_recorded_video);
 
-        setTitle(getString(R.string.what_to_do));
+        int recordedVideoID = getIntent().getIntExtra("id", 0);
 
-        intent = getIntent();
+        recordedVideo = Utility.getDB().getRecordedVideo(recordedVideoID);
+
+        setTitle(recordedVideo.getTitle());
+        ((TextView) findViewById(R.id.desc_textview)).setText(recordedVideo.getDescription());
+        ((TextView) findViewById(R.id.packagename_textview)).setText(recordedVideo.getPackageName());
+        ((TextView) findViewById(R.id.time_textview)).setText(recordedVideo.getTime().toString());
 
     }
 
-    public void playFromNotification(View view) {
-        String path = intent.getStringExtra("path");
+    public void play(View view) {
+        String path = recordedVideo.getPath();
         Intent playIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(path));
         playIntent.setDataAndType(Uri.fromFile(new File(path)), Utility.getMimeType(path));
         playIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -41,8 +51,8 @@ public class AfterRecordActivity extends AppCompatActivity {
         }
     }
 
-    public void shareFromNotification(View view) {
-        String path = intent.getStringExtra("path");
+    public void share(View view) {
+        String path = recordedVideo.getPath();
         Intent shareIntent = new Intent();
         shareIntent.setAction(Intent.ACTION_SEND);
         shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(path));
@@ -57,7 +67,7 @@ public class AfterRecordActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_after_record, menu);
+        getMenuInflater().inflate(R.menu.menu_recorded_video, menu);
         return true;
     }
 

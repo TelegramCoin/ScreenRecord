@@ -1,4 +1,4 @@
-package com.example.ozercanh.screenrecordqa;
+package com.halilibo.screenrecorddebug;
 
 import android.app.Activity;
 import android.content.Context;
@@ -12,10 +12,10 @@ import android.util.Log;
 import android.view.Display;
 import android.view.View;
 
-import com.example.ozercanh.screenrecordqa.Interface.RecorderListener;
-import com.example.ozercanh.screenrecordqa.Model.RecorderParams;
-import com.example.ozercanh.screenrecordqa.Model.Screenshot;
-import com.example.ozercanh.screenrecordqa.Model.Status;
+import com.halilibo.screenrecorddebug.Interface.RecorderListener;
+import com.halilibo.screenrecorddebug.Model.RecorderParams;
+import com.halilibo.screenrecorddebug.Model.Screenshot;
+import com.halilibo.screenrecorddebug.Model.Status;
 
 import java.io.File;
 import java.util.Timer;

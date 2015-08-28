@@ -2,9 +2,9 @@ package com.example.ozercanh.screenrecordapp;
 
 import android.app.Application;
 
-import com.example.ozercanh.screenrecordqa.Model.Place;
-import com.example.ozercanh.screenrecordqa.ScreenRecord;
-import com.example.ozercanh.screenrecordqa.Model.Size;
+import com.halilibo.screenrecorddebug.Model.Place;
+import com.halilibo.screenrecorddebug.Model.Size;
+import com.halilibo.screenrecorddebug.ScreenRecord;
 
 /**
  * Created by ozercanh on 25/08/2015.

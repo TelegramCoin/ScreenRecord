@@ -1,0 +1,71 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.ozercanh.screenrecordqa.View.RecordedVideoActivity"
+    android:padding="12dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Medium Text"
+        android:textSize="16sp"
+        android:id="@+id/desc_textview"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Medium Text"
+        android:textSize="16sp"
+        android:id="@+id/packagename_textview"
+        android:layout_below="@+id/desc_textview"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/desc_textview"
+        android:layout_alignEnd="@+id/desc_textview"
+        android:layout_margin="4dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Medium Text"
+        android:textSize="16sp"
+        android:id="@+id/time_textview"
+        android:layout_below="@+id/packagename_textview"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/packagename_textview"
+        android:layout_alignEnd="@+id/packagename_textview"
+        android:layout_margin="4dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/play"
+        android:drawableLeft="@drawable/ic_play"
+        android:id="@+id/play_button"
+        android:layout_below="@+id/time_textview"
+        android:layout_alignRight="@+id/time_textview"
+        android:layout_alignEnd="@+id/time_textview"
+        android:onClick="play" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/share"
+        android:drawableLeft="@drawable/ic_share"
+        android:id="@+id/share_button"
+        android:layout_alignBottom="@+id/play_button"
+        android:layout_toLeftOf="@+id/play_button"
+        android:layout_toStartOf="@+id/play_button"
+        android:onClick="share" />
+</RelativeLayout>

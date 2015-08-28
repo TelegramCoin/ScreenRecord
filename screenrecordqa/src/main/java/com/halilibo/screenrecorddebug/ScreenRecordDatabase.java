@@ -1,4 +1,4 @@
-package com.example.ozercanh.screenrecordqa;
+package com.halilibo.screenrecorddebug;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -6,11 +6,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.example.ozercanh.screenrecordqa.Model.RecordedVideo;
+import com.halilibo.screenrecorddebug.Model.RecordedVideo;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class ScreenRecordDatabase extends SQLiteOpenHelper {
 
@@ -72,8 +71,33 @@ public class ScreenRecordDatabase extends SQLiteOpenHelper {
         db.close(); // Closing database connection
     }
 
-    public List<RecordedVideo> getAllRecordedVideos() {
-        List<RecordedVideo> recordedVideoList = new ArrayList<RecordedVideo>();
+    public RecordedVideo getRecordedVideo(int id) {
+        // Select All Query
+        String selectQuery = "SELECT  * FROM " + TABLE_RECORDED_VIDEO + " WHERE " + KEY_ID + "=" +id;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+
+                RecordedVideo recordedVideo = new RecordedVideo();
+                recordedVideo.setId(Integer.parseInt(cursor.getString(0)));
+                recordedVideo.setTitle(cursor.getString(1));
+                recordedVideo.setDescription(cursor.getString(2));
+                recordedVideo.setPath(cursor.getString(3));
+                recordedVideo.setPackageName(cursor.getString(4));
+                recordedVideo.setTime(new Date(Long.parseLong(cursor.getString(5))));
+                // Adding RecordedVideo to list
+                return recordedVideo;
+        }
+
+        // return RecordedVideo list
+        return null;
+    }
+
+    public ArrayList<RecordedVideo> getAllRecordedVideos() {
+        ArrayList<RecordedVideo> recordedVideoList = new ArrayList<RecordedVideo>();
         // Select All Query
         String selectQuery = "SELECT  * FROM " + TABLE_RECORDED_VIDEO;
 
